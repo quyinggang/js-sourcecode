@@ -1,0 +1,19 @@
+@charset 'utf-8';
+
+.layui-upload {
+    display: inline-block;
+    width: 111px;
+    height: 36px;
+    border: 1px solid #DFDFDF;
+    font-size: 14px;
+    background: #fff;
+    color: #000;
+    cursor: pointer;
+}
+
+.layui-upload:visited {
+    border: 1px solid #ddd;
+}
+.layui-hide {
+    display: none;
+}

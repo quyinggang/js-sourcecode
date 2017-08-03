@@ -1,0 +1,201 @@
+@charset 'utf-8';
+* {
+    padding: 0;
+    height: 0;
+}
+
+.ueditor-bold {
+    font-weight: bold;
+}
+
+.ueditor-italic {
+    font-style: italic;
+}
+
+.ueditor-left, .ueditor-right {
+    display: inline-block;
+    width: calc(100% - 2.5em);
+}
+
+.ueditor-left {
+    text-align: left;
+}
+
+.ueditor-center {
+    display: inline-block;
+    width: calc(100% - 6em);
+    text-align: center;
+}
+
+.ueditor-right {
+    text-align: right;
+}
+
+.ueditor-hide {
+    display: none;
+}
+
+.ueditor-show {
+    display: block;
+}
+.ueditor-shadow {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, .6);
+    z-index: 100;
+}
+.ueditor-toolsbar_link {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 600px;
+    height: 180px;
+    margin: -60px 0 0 -300px;
+    background: #fff;
+    box-shadow: 0 0 1px rgba(0, 0, 0, .5);
+    z-index: 1998;
+    transition: display 1s ease;
+}
+
+.ueditor-toolsbar_link .toolsbar_link_title {
+    height: 30px;
+    line-height: 30px;
+    padding: 0;
+    margin: 0;
+    text-indent: 2em;
+}
+
+.ueditor-toolsbar_link .toolsbar_link_content {
+    display: table-cell;
+    height: 120px;
+    vertical-align: middle;
+}
+
+.ueditor-toolsbar_link .toolsbar_link_content label {
+    display: inline-block;
+    width: 100px;
+    height: 24px;
+    line-height: 24px;
+    padding: 0 10px 0 2em;
+    text-align: right;
+}
+
+.ueditor-toolsbar_link .toolsbar_link_content input{
+    width: 400px;
+    height: 20px;
+    margin: 10px 0;
+}
+
+.ueditor-toolsbar_link .toolsbar_link_buttons i {
+    float: right;
+    width: 20px;
+    height: 30px;
+    line-height: 30px;
+    font-size: 1.2em;
+    margin: 0 20px;
+    color: rgba(49, 126, 243, 1);
+    cursor: pointer;
+}
+
+.ueditor-toolsbar_link .toolsbar_link_buttons i:hover {
+    opacity: .8;
+}
+
+.ueditor-toolsbar_gif {
+    position: absolute;
+    top: 38px;
+    right: 0;
+    width: 360px;
+    height: 200px;
+    padding: 5px;
+    text-align: left;
+    border: 1px solid #ccc;
+    box-shadow: 0 0 2px rgba(0, 0, 0, .5);
+    background: #fff;
+    z-index: 2000;
+}
+
+.ueditor-toolsbar_gif div {
+    display: inline-block;
+    width: 25px;
+    height: 25px;
+    text-align: center;
+    line-height: 25px;
+    margin: 2px;
+    cursor: pointer;
+}
+
+.ueditor-toolsbar_gif div img {
+    width: 22px;
+    height: 22px;
+}
+
+.ueditor-toolsbar_gif div:hover {
+    background: rgba(169, 169, 169, .5);
+}
+
+#ueditor {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 560px;
+    height: 400px;
+    margin: -200px 0 0 -280px;
+    border: 1px solid rgba(169, 169, 169, 1);
+}
+
+#ueditor .ueditor-toolsbar {
+    width: 100%;
+    height: 30px;
+    border-bottom: 1px solid rgba(169, 169, 169, 1);
+}
+
+#ueditor .ueditor-toolsbar span {
+    position: relative;
+    display: inline-block;
+    width: 80px;
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
+}
+
+#ueditor .ueditor-toolsbar span i {
+    opacity: .5;
+    cursor: pointer;
+}
+#ueditor .ueditor-toolsbar span:hover i {
+    opacity: 1;
+}
+
+#ueditor .ueditor-content {
+    width: 100%;
+    height: 341px;
+    font: normal normal 14px sans-serif;
+    padding: 1em 0;
+    text-indent: 2em;
+    border: none;
+    outline: none;
+    vertical-align: middle;
+}
+
+#ueditor .ueditor-content img {
+    position: relative;
+    width: 22px;
+    height: 22px;
+}
+
+#ueditor .ueditor-content a {
+    color: rgba(48, 167, 226, .6);
+    text-decoration: none;
+    cursor: pointer;
+}
+
+#ueditor .ueditor-content a:hover {
+    color: rgba(48, 167, 226, 1);
+}
+
+
+

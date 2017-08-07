@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>图片懒加载</title>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
+        #lazy-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 600px;
+            height: 400px;
+            padding: 20px 5px;
+            margin: -200px 0 0 -300px;
+            border: 1px solid #ddd;
+            overflow: auto;
+        }
+        div {
+            display: inline-block;
+            width: 280px;
+            height: 190px;
+        }
+        div img {
+            width: 100%;
+            height: 100%;
+            transition: height 1s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <div id="lazy-loading">
+        <div><img alt="image"></div>
+        <div><img alt="image"></div>
+        <div><img alt="image"></div>
+        <div><img alt="image"></div>
+        <div><img alt="image"></div>
+        <div><img alt="image"></div>
+        <div><img alt="image"></div>
+        <div><img alt="image"></div>
+        <div><img alt="image"></div>
+        <div><img alt="image"></div>
+        <div><img alt="image"></div>
+        <div><img alt="image"></div>
+        <div><img alt="image"></div>
+        <div><img alt="image"></div>
+        <div><img alt="image"></div>
+        <div><img alt="image"></div>
+        <div><img alt="image"></div>
+        <div><img alt="image"></div>
+        <div><img alt="image"></div>
+        <div><img alt="image"></div>
+    </div>
+    <script>
+        window.onload = function() {
+            let elem = document.getElementById('lazy-loading');
+            let images = document.getElementsByTagName('img'), record = [0];
+            let data = [
+                'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1502102065589&di=1ee1bb432b03762590d1a9e3ae2d9b1b&imgtype=0&src=http%3A%2F%2Fattcdn.xc.zj.cn%2Fforum%2F201601%2F10%2F121222ibbwuw9b3uc5erf3.jpg',
+                'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1502102108602&di=222f666e7b2ac13fff3e021f8638986e&imgtype=0&src=http%3A%2F%2Fwww.910club.cn%2Fkjsc%2FUploadFiles20081886%2F200904%2F2009042412262941.jpg',
+                'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1502102108601&di=953a06fca1ae854942136e5aba9bb04c&imgtype=0&src=http%3A%2F%2Fimg2.3lian.com%2Fimg2007%2F23%2F33%2F015.jpg',
+                'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1502102108600&di=1fd868e955edf4e6cff57f2a828c23e6&imgtype=0&src=http%3A%2F%2Fimages.tuniucdn.com%2Fimages%2F2006-09-24%2F4%2F4kC5ex0986420Q86.jpg',
+                'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1502102108599&di=22ef8240a4f72cfd5cd9cfb0351aa7c5&imgtype=0&src=http%3A%2F%2Fwww.rijigu.com%2FData%2FUploads%2Farcimages%2F20120502%2F87001335971122.jpg',
+                'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1502102065589&di=1ee1bb432b03762590d1a9e3ae2d9b1b&imgtype=0&src=http%3A%2F%2Fattcdn.xc.zj.cn%2Fforum%2F201601%2F10%2F121222ibbwuw9b3uc5erf3.jpg',
+                'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1502102108602&di=222f666e7b2ac13fff3e021f8638986e&imgtype=0&src=http%3A%2F%2Fwww.910club.cn%2Fkjsc%2FUploadFiles20081886%2F200904%2F2009042412262941.jpg',
+                'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1502102108601&di=953a06fca1ae854942136e5aba9bb04c&imgtype=0&src=http%3A%2F%2Fimg2.3lian.com%2Fimg2007%2F23%2F33%2F015.jpg',
+                'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1502102108600&di=1fd868e955edf4e6cff57f2a828c23e6&imgtype=0&src=http%3A%2F%2Fimages.tuniucdn.com%2Fimages%2F2006-09-24%2F4%2F4kC5ex0986420Q86.jpg',
+                'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1502102108599&di=22ef8240a4f72cfd5cd9cfb0351aa7c5&imgtype=0&src=http%3A%2F%2Fwww.rijigu.com%2FData%2FUploads%2Farcimages%2F20120502%2F87001335971122.jpg',
+                'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1502102065589&di=1ee1bb432b03762590d1a9e3ae2d9b1b&imgtype=0&src=http%3A%2F%2Fattcdn.xc.zj.cn%2Fforum%2F201601%2F10%2F121222ibbwuw9b3uc5erf3.jpg',
+                'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1502102108602&di=222f666e7b2ac13fff3e021f8638986e&imgtype=0&src=http%3A%2F%2Fwww.910club.cn%2Fkjsc%2FUploadFiles20081886%2F200904%2F2009042412262941.jpg',
+                'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1502102108601&di=953a06fca1ae854942136e5aba9bb04c&imgtype=0&src=http%3A%2F%2Fimg2.3lian.com%2Fimg2007%2F23%2F33%2F015.jpg',
+                'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1502102108600&di=1fd868e955edf4e6cff57f2a828c23e6&imgtype=0&src=http%3A%2F%2Fimages.tuniucdn.com%2Fimages%2F2006-09-24%2F4%2F4kC5ex0986420Q86.jpg',
+                'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1502102108599&di=22ef8240a4f72cfd5cd9cfb0351aa7c5&imgtype=0&src=http%3A%2F%2Fwww.rijigu.com%2FData%2FUploads%2Farcimages%2F20120502%2F87001335971122.jpg',
+                'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1502102065589&di=1ee1bb432b03762590d1a9e3ae2d9b1b&imgtype=0&src=http%3A%2F%2Fattcdn.xc.zj.cn%2Fforum%2F201601%2F10%2F121222ibbwuw9b3uc5erf3.jpg',
+                'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1502102108602&di=222f666e7b2ac13fff3e021f8638986e&imgtype=0&src=http%3A%2F%2Fwww.910club.cn%2Fkjsc%2FUploadFiles20081886%2F200904%2F2009042412262941.jpg',
+                'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1502102108601&di=953a06fca1ae854942136e5aba9bb04c&imgtype=0&src=http%3A%2F%2Fimg2.3lian.com%2Fimg2007%2F23%2F33%2F015.jpg',
+                'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1502102108600&di=1fd868e955edf4e6cff57f2a828c23e6&imgtype=0&src=http%3A%2F%2Fimages.tuniucdn.com%2Fimages%2F2006-09-24%2F4%2F4kC5ex0986420Q86.jpg',
+                'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1502102108599&di=22ef8240a4f72cfd5cd9cfb0351aa7c5&imgtype=0&src=http%3A%2F%2Fwww.rijigu.com%2FData%2FUploads%2Farcimages%2F20120502%2F87001335971122.jpg'
+            ]
+            if (!elem) return;
+            for (let index = 0; index < images.length; index++) {
+                let image = images[index];
+                let offsetTop = image.offsetTop;
+                let width = image.clientWidth;
+                // 设置初始化时显示的图片
+                if (offsetTop < elem.clientHeight) {
+                   image.src = data[index];
+                }
+            }
+            elem.addEventListener('scroll', function() {
+                let scrollTop = this.scrollTop, scrollHeight = this.scrollHeight,
+                    clientHeight = elem.clientHeight;
+
+                // 处理向上滚动的重复性问题
+                if (scrollTop > record[0]) {
+                    record.shift();
+                    record.push(scrollTop);
+                }
+                // 只有向下滚动才执行相关程序
+                if (scrollTop >= record[0]) {
+                    for (let index = 0; index < images.length; index++) {
+                        let image = images[index], offsetTop = image.offsetTop, 
+                            start = scrollTop, end = start + clientHeight;
+                        // 核心代码，图片显示的可视区域: scrollTop ~ scollTop + clientHeight
+                        if (offsetTop >= start && offsetTop <= end) {
+                            if (!image.src) {
+                                setTimeout(function() {
+                                    image.src = data[index];
+                                }, 300);
+                            }
+                        }
+                    }
+                }
+            });
+        };
+    </script>
+</body>
+</html>

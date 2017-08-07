@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>流加载</title>
+    <link rel="stylesheet" href="./css/font-awesome.min.css">
+    <link rel="stylesheet" href="./css/streamLoading.css">
+</head>
+<body>
+    <div id="streaming-loading">
+    </div>
+    <script type="text/javascript" src="./js/streamLoading.js"></script>
+    <script>
+        var data = (function() {
+            var data = [];
+                var origin = [
+                    'https://ss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=3752062133,666276420&fm=26&gp=0.jpg',
+                    'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1502366288&di=d21ca58e268bc34f99199065e67d91e8&imgtype=jpg&er=1&src=http%3A%2F%2Fwww.9tour.cn%2FUploadfile%2F52d89eafe12f5490.jpg',
+                    'https://ss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=3386330402,1391717563&fm=26&gp=0.jpg',
+                    'https://ss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=534943948,3570426915&fm=26&gp=0.jpg',
+                    'https://ss3.bdstatic.com/70cFv8Sh_Q1YnxGkpoWK1HF6hhy/it/u=2137711872,80447529&fm=26&gp=0.jpg'
+                ];
+    
+                for (var i = 0; i < 20; i++) {
+                    var index = Math.floor((Math.floor(Math.random() * 10) + 1) / 3);
+                    data.push(origin[index]);
+                }
+            return data;
+        })();
+        var sLoading = new StreamingLoading();
+        sLoading.set({images: data, column: 3, type: 'click'});
+        sLoading.start('streaming-loading');
+    </script>
+</body>
+</html>

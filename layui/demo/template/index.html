@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>模板引擎</title>
+</head>
+<body>
+    <div id="template">
+        <ul class="container">
+            <li v-if="isShow">hello, world</li>
+            <li v-text="message"></li>
+            <li>{{data}}</li>
+        </ul>
+    </div>
+    <script type="text/javascript" src="./js/template.js"></script>
+</body>
+</html>

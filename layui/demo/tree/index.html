@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>树状菜单</title>
+    <link rel="stylesheet" type="text/css" href="./css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="./css/tree.css">
+</head>
+<body>
+    <div id="tree"></div>
+    <script type="text/javaScript" src="./js/tree.js"></script>
+    <script>
+        var data = [
+            {
+                name: '菜单1',
+                children: [
+                    {
+                        name: '子菜单1'
+                    },
+                    {
+                        name: '子菜单2',
+                        children: [
+                            {
+                                name: '2-子菜单1',
+                                children: [
+                                    {
+                                        name: '2-1-子菜单1'
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                name: '菜单2',
+                children: [
+                    {
+                        name: '子菜单1'
+                    },
+                    {
+                        name: '子菜单2'
+                    }
+                ]
+            },
+            {
+                name: '菜单3'
+            }
+        ];
+        new Tree(data, 'tree');
+    </script>
+</body>
+</html>

@@ -1,0 +1,241 @@
+#!/usr/bin/env node
+
+"use strict";
+
+var hexu = require("hexu");
+var Handlebars = require("handlebars");
+const download = require("download-git-repo");
+var async = require("async");
+var fs = require("fs");
+var path = require('path');
+var readline = require('readline');
+var exec = require("child_process").execSync;
+var pkg = require("../package.json");
+var load = require("../src/loader.js");
+
+// process是Node的全局对象，cwd代表当前目录路径
+const cwd = process.cwd();
+
+// process.argv是传入的参数的数组集合
+var command = process.argv.slice(2);
+
+// readline(逐行读取)
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
+
+load.defineRl(rl);
+
+const space = (num) => {
+  return "\n".repeat(num);
+}
+
+const intro = () => {
+  // hexu：指定字符颜色
+  console.log(hexu.blue("======= MOON =======") + space(1));
+}
+
+const help = () => {
+  console.log("    Usage: moon <command> [options]");
+  console.log(space(1));
+  console.log("    Commands: ");
+  console.log("      init\tgenerates a new project");
+  console.log("      help\tdisplays this help message");
+  console.log(space(1));
+  console.log("    Options: ");
+  console.log("      -h, --help\tdisplays this help message");
+  console.log("      -v, --version\tdisplays current Moon version");
+  exit();
+}
+
+const version = () => {
+  console.log(pkg.version);
+  exit();
+}
+
+const err = (msg) => {
+  console.log("  Moon " + hexu.red("ERR") + "    " + msg);
+  exit();
+}
+
+// 关闭文件流
+const exit = () => {
+  rl.close();
+}
+
+const sep = path.sep;
+// 创建文件或目录
+let mkdirp = (dir) => {
+  const parts = dir.split(sep);
+  let subdir = sep;
+
+  for(let i = 1; i < parts.length; i++) {
+    subdir += parts[i] + sep;
+    if(fs.existsSync(subdir) === false) {
+      fs.mkdirSync(subdir);
+    }
+  }
+}
+
+// 删除目录
+const del = (dir) => {
+  if(fs.lstatSync(dir).isFile()) {
+    fs.unlinkSync(dir);
+    return;
+  }
+  const files = fs.readdirSync(dir);
+  for(var i = 0; i < files.length; i++) {
+    let filePath = path.join(dir, files[i]);
+    if(fs.existsSync(filePath)) {
+      del(filePath);
+    } else {
+      fs.unlinkSync(filePath);
+    }
+  }
+}
+
+// info函数
+const info = (cb) => {
+  // exec是child_process的execSync方法，该方法是创建同步执行命令
+  // 此处是获取git中的user.name属性的值
+  var name = JSON.stringify(exec('git config --get user.name').toString().trim()).slice(1, -1);
+  var answers = ask({
+    "Author": {
+      def: name,
+      key: "author"
+    },
+    "Description": {
+      def: "A Moon App",
+      key: "description"
+    },
+    "Moon Version": {
+      def: exec("npm show moonjs version").toString().slice(0, -1),
+      key: "version"
+    }
+  }, function(answers) {
+    cb(answers);
+  });
+}
+
+const ask = (questions, cb) => {
+  var prompt, answers = {};
+  // async是异步处理模块
+  async.eachSeries(Object.keys(questions), function(question, done) {
+    var def = questions[question].def;
+    // [?] Author (默认) 
+     if(def) {
+      prompt = "    " + hexu.green("[?]") + " " + question + hexu.grey(" (" + def + ")  ");
+    } else {
+      prompt = "    " + hexu.green("[?]") + " " + question + "  ";
+    }
+    // 获取用户输入内容
+    rl.question(prompt, (answer) => {
+      if(!answer) answer = def;
+      readline.moveCursor(rl, 0, -1);
+      rl.write("\n");
+      readline.moveCursor(rl, 0, -2);
+      rl.write(`    ${hexu.green("[?]")} ${question}  ${hexu.cyan(answer)}\n\n`);
+      readline.moveCursor(rl, 0, -1);
+      rl.write(" ".repeat(prompt.length) + "\n");
+      answers[questions[question].key] = answer;
+      done(null);
+    });
+  }, function() {
+    cb(answers)
+  });
+}
+
+var read = function(file, cb) {
+  fs.readFile(file, 'utf8', function(err, content) {
+    cb(file, content);
+  });
+}
+
+const compile = (file, opts) => {
+  return Handlebars.compile(fs.readFileSync(file).toString())(opts);
+}
+
+// moon init的直接处理函数
+const init = (name) => {
+  // 调用info函数
+  info(function(opts) {
+    // Create Loader
+    var templateLoader = new load(hexu.blue("generating") + " template");
+
+    // Create directory
+    // 创建项目目录
+    const projectDir = path.join(cwd, name);
+    mkdirp(projectDir);
+
+    // Download Template
+    // 获取template目录路径
+    const templatePath = path.join(__dirname, "/../template");
+    // template是否存在，存在就删除
+    if(fs.existsSync(templatePath)) {
+      del(templatePath);
+    }
+    // 从指定的仓库下载template到本地指定路径
+    download("KingPixil/moon-template", templatePath, () => {
+      // 获取template中config.json文件，该文件中存储了moon项目初始化的所有文件名
+      const configPath = path.join(templatePath, "config.json");
+      const config = JSON.parse(fs.readFileSync(configPath));
+      const files = config.files;
+
+      // 创建文件或目录
+      for(var i = 0; i < files.length; i++) {
+        let source = path.join(templatePath, files[i]);
+        let target = path.join(projectDir, files[i]);
+
+        mkdirp(path.dirname(target));
+
+        opts.name = name;
+        fs.writeFileSync(target, compile(source, opts));
+      }
+
+      // close事件触发后的回调函数，输出一些提示信息
+      rl.on('close', function() {
+        console.log("\n");
+        console.log(`${hexu.green("success")} generated ${hexu.grey(`'${name}'`)} ✨`);
+        console.log("\n")
+        console.log("To Start, Run:");
+        console.log(hexu.grey(`  cd ${name}
+  npm install
+  npm run dev`));
+      });
+      // template下载完毕后关闭readline
+      templateLoader.done(function() {
+        rl.close();
+      });
+    });
+  });
+}
+
+// 输出蓝色提示"=======MOON======="
+intro();
+// 处理moon init、moon help | --help | -h、moon -v | --version命令
+switch (command[0]) {
+  case "--help":
+  case "help":
+  case undefined:
+    help();
+    break;
+  case "-h":
+    help();
+    break;
+  case "-v":
+    version();
+    break;
+  case "--version":
+    version();
+    break;
+  case "init":
+    if(command[1]) {
+      init(command[1]);
+    } else {
+      err("Please provide an app name");
+    }
+    break;
+  default:
+    err("Command Not Found");
+}

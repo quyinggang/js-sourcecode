@@ -1,0 +1,25 @@
+{
+  "name": "moon-cli",
+  "version": "0.1.1",
+  "description": "Client for generating Moon applications.",
+  "main": "bin/moon",
+  "bin": {
+    "moon": "./bin/moon"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kbrsh/moon-cli.git"
+  },
+  "author": "Kabir Shah",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/kbrsh/moon-cli/issues"
+  },
+  "homepage": "https://github.com/kbrsh/moon-cli#readme",
+  "dependencies": {
+    "async": "^2.1.5",
+    "download-git-repo": "^0.2.1",
+    "handlebars": "^4.0.6",
+    "hexu": "^1.0.0"
+  }
+}

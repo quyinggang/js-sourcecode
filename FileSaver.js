@@ -154,6 +154,7 @@
                             view.location.href = object_url;
                         } else {
                             var opened = view.open(object_url, "_blank");
+                            // 浏览器内置了弹出窗口屏蔽程序，如果被阻止就会返回null
                             if (!opened) {
                                 // Apple不支持window.open下载
                                 view.location.href = object_url;

@@ -1,0 +1,123 @@
+/**
+ * Monx v0.1.1
+ * Copyright 2017-2018 Kabir Shah
+ * Released under the MIT License
+ * https://github.com/kbrsh/monx
+ */
+
+(function(root, factory) {
+  /* ======= Global Monx ======= */
+  if(typeof module === "undefined") {
+    root.Monx = factory();
+  } else {
+    module.exports = factory();
+  }
+}(this, function() {
+    var MoonDestroy;
+    
+    var initState = function(store) {
+      var state = store.state;
+      var _state = store._state;
+    
+      var instances = store.instances;
+      var map = store.map;
+
+      // store状态结合对象中属性实现监听，实现响应式数据
+      var loop = function ( key ) {
+        Object.defineProperty(state, key, {
+          get: function() {
+            var target = store.target;
+            if(target !== undefined) {
+              map[target][key] = true;
+            }
+    
+            return _state[key];
+          },
+          set: function(value) {
+            _state[key] = value;
+    
+            for(var i = 0; i < instances.length; i++) {
+              var currentInstance = instances[i];
+              if(map[currentInstance.name][key] === true) {
+                currentInstance.build();
+              }
+            }
+          },
+          enumerable: true
+        });
+      };
+    
+      for(var key in _state) loop( key );
+    }
+    
+    var defineProperty = function(obj, prop, value, def) {
+      if(value === undefined) {
+        obj[prop] = def;
+      } else {
+        obj[prop] = value;
+      }
+    }
+    
+    
+    function Monx(options) {
+      // 状态集合对象
+      this.state = {};
+      defineProperty(this, "_state", options.state, {});
+    
+      defineProperty(this, "actions", options.actions, {});
+    
+      // Instances
+      this.instances = [];
+    
+      // 对应的Moon实例对象
+      this.map = {};
+    
+      // Component to capture
+      this.target = undefined;
+    
+      // Initialize reactive state
+      initState(this);
+    }
+    
+    Monx.prototype.dispatch = function(name, payload) {
+      this.actions[name](this.state, payload);
+    }
+    
+    // 将store注册到Moon实例上
+    Monx.prototype.init = function(instance) {
+      var name = instance.name;
+      var store = this;
+    
+      // Add store to data
+      instance.data.store = store;
+    
+      // Capture dependencies
+      var render = instance.render;
+      instance.render = function() {
+        store.target = name;
+        var dom = render.apply(this, arguments);
+        store.target = undefined;
+        return dom;
+      }
+    
+      // Remove store when destroyed
+      instance.destroy = function() {
+        var instances = store.instances;
+        instances.splice(instances.indexOf(this), 1);
+        delete store.map[name];
+        MoonDestroy.apply(this, arguments);
+      }
+    
+      // Add to set of instances to update
+      store.instances.push(instance);
+    
+      // Add to dependency map
+      store.map[name] = {};
+    }
+    
+    Monx.init = function(Moon) {
+      MoonDestroy = Moon.prototype.destroy;
+    }
+    
+    return Monx;
+}));

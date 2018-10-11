@@ -530,13 +530,17 @@
      * @return {Object} DOM Node
      */
     var createComponentFromVNode = function (node, vnode, component) {
+      // MoonComponent，实际上内部是调用Moon构造函数
+      // 从此可以看出每一个组件都是一个Moon子实例
       var componentInstance = new component.CTor();
       // Merge data with provided props
       for (var i = 0; i < componentInstance.$props.length; i++) {
         var prop = componentInstance.$props[i];
         componentInstance.$data[prop] = vnode.props.attrs[prop];
       }
+      // 获取组件下的所有slots插槽
       componentInstance.$slots = getSlots(vnode.children);
+      // 该组件的挂载点
       componentInstance.$el = node;
       componentInstance.build();
       callHook(componentInstance, 'mounted');
@@ -949,7 +953,10 @@
     
     var tagStartRE = /<[\w/]\s*/;
     
-    // 处理html的node构建虚拟DOM对象
+    /*
+      处理html的node构建令牌对象数组tokens
+      input: template | outHTML
+     */
     var lex = function (input) {
       var state = {
         input: input,
@@ -965,7 +972,7 @@
       // input就是template
       var input = state.input;
       var len = input.length;
-      // 按字符遍历处理
+      // 字符遍历处理
       while (state.current < len) {
         // 处理文本
         if (input.charAt(state.current) !== "<") {
@@ -984,11 +991,12 @@
       }
     };
     
-    // 处理文本
+    // 处理模板HTML中非标签的文本部分
     var lexText = function (state) {
       var input = state.input;
       var len = input.length;
       // tagStartRE = /<[\w/]\s*/;
+      // 获取文本结束边界，通过获取结束标签或开始标签的位置计算得来
       var endOfText = input.substring(state.current).search(tagStartRE) + state.current;
     
       // Only Text
@@ -1001,12 +1009,12 @@
         return;
       }
     
-      // No Text at All
+      // 不存在文本
       if (endOfText === state.current) {
         return;
       }
     
-      // End of Text Found
+      // 获取标签下的文本
       state.tokens.push({
         type: "text",
         value: input.slice(state.current, endOfText)
@@ -1042,9 +1050,9 @@
       var input = state.input;
       var len = input.length;
     
-      // 下一个字符是否是结束标志
+      // 判断是否是结束标签
       var isClosingStart = input.charAt(state.current + 1) === "/";
-      // 不是+1, 是+2
+      // 设置当前字符位置
       state.current += isClosingStart ? 2 : 1;
     
       // 获取tag名称
@@ -1069,12 +1077,19 @@
     
     // 获取标签的类型，实际上就是标签名称
     var lexTagType = function (state) {
+      // 模板html文本
       var input = state.input;
       var len = input.length;
       var current = state.current;
       var tagType = "";
+      // 遍历处理获取标签及类型
       while (current < len) {
         var char = input.charAt(current);
+        /*
+          /：处理< div />这种情况
+          >：正常标签处理，例如:<div>
+          " "：处理带属性的标签, 例如:<div class="">
+         */
         if (char === "/" || char === ">" || char === " ") {
           break;
         } else {
@@ -1116,14 +1131,15 @@
           break;
         }
     
-        // 空格跳过当前处理
+        // 空格跳过当前处理，例如<div id="app"></div>
         if (char === " ") {
           incrementChar();
           continue;
         }
         var attrName = "";
         var noValue = false;
-    
+  
+        // attr="value"结构的处理
         while (current < len && char !== "=") {
           if (char !== " " && char !== ">" && char !== "/" && nextChar !== ">") {
             attrName += char;
@@ -1157,7 +1173,7 @@
           incrementChar();
         }
     
-        // Find the end of it
+        // 处理获取属性值
         while (current < len && char !== quoteType) {
           attrValue.value += char;
           incrementChar();
@@ -1174,7 +1190,7 @@
           attrValue.meta.arg = splitAttrName[1];
         }
     
-        // Setup the Value
+        // 对应标签的属性集合
         attributes[attrName] = attrValue;
       }
     
@@ -1182,8 +1198,9 @@
       tagToken.attributes = attributes;
     };
     
-    // 根据标签等构成的tokens数组来构建树形结构
+    // 根据模板HTML的令牌tokens数组来构建DOM结构
     var parse = function (tokens) {
+      // 根节点
       var root = {
         type: "ROOT",
         children: []
@@ -1193,7 +1210,7 @@
         current: 0,
         tokens: tokens
       };
-    
+
       while (state.current < tokens.length) {
         var child = walk(state);
         if (child) {
@@ -1214,6 +1231,7 @@
         children: children
       };
     };
+
     // 处理虚拟DOM之间的关系构建树形结构
     var walk = function (state) {
       var token = state.tokens[state.current];
@@ -1227,18 +1245,18 @@
         nextToken = state.tokens[state.current + 1];
       };
 
-      // 文本
+      // 文本token
       if (token.type === "text") {
         increment();
         return previousToken.value;
       }
-      // 注释
+      // 注释token
       if (token.type === "comment") {
         increment();
         return null;
       }
     
-      // 标签
+      // 标签token
       if (token.type === "tag") {
         var tagType = token.value;
         var closeStart = token.closeStart;
@@ -1253,7 +1271,7 @@
     
         // If it is an svg element, let code generator know
         if (isSVGElement) {
-          node.isSVG = true;
+          node.isSVG = true;VOIDVOID
         }
     
         if (isVoidElement) {
@@ -1555,12 +1573,13 @@
     
         // Create a Call for the Element, or Register a Slot
         var compiledCode = "";
-        // 是否存在插槽slot
+        // 是否是插槽类型
         if (vnode.type === "slot") {
           parentVNode.meta.shouldRender = true;
           parentVNode.deep = true;
     
           var slotNameAttr = vnode.props.attrs.name;
+          // 从此处可知：Moon组件实例中存在$slots集合
           compiledCode = 'instance.$slots[\'' + (slotNameAttr && slotNameAttr.value || "default") + '\']';
         } else {
           // 创建函数体
@@ -1594,10 +1613,11 @@
         escapedDelimiters[1] = escapeRegex(delimiters[1]);
       }
     
-      // 获取函数体
+      // 函数体
       var code = "var instance = this; return " + generateEl(root);
     
       try {
+        // 创建函数，传递参数为h函数
         return new Function("h", code);
       } catch (e) {
         error("Could not create render function");
@@ -1609,9 +1629,9 @@
     var compile = function (template) {
       // 将html装换成指定格式的token对象
       var tokens = lex(template);
-      // 根据tokens构建虚拟DOM树结构
+      // 根据tokens构建AST（树形结构）
       var ast = parse(tokens);
-      // 根据虚拟DOM树结构返回固定格式的函数
+      // 根据AST树结构返回固定格式的函数
       return generate(ast);
     };
     
@@ -1861,17 +1881,18 @@
     
       // 添加属性__moon__,指向Moon实例
       this.$el.__moon__ = this;
-      // 获取template
+      // 获取template，如果不存在template，则获取挂载点 + 子元素的html
+      // 注意outHTML与innerHTML的区别
       this.$template = this.$opts.template || this.$el.outerHTML;
-      // 生成$render函数
+      // 如果传入render函数，则生成render函数
       if (this.$render === noop) {
         this.$render = Moon.compile(this.$template);
       }
     
-      // 生成虚拟DOM并转换成浏览器DOM
+      // 生成虚拟DOM并转换真实DOM，渲染视图
       this.build();
     
-      // 存在mounted函数，就调用
+      // mounted生命周期函数调用
       callHook(this, 'mounted');
     };
     
@@ -1938,7 +1959,7 @@
      */
     Moon.prototype.init = function () {
       log("======= Moon =======");
-      // 如果存在init，则调用
+      // 如果存在init生命周期函数，则调用
       callHook(this, 'init');
       // 挂载点存在，调用Moon实例的mount方法
       if (this.$opts.el !== undefined) {

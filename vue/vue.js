@@ -2749,6 +2749,7 @@ function mountComponent (
   hydrating
 ) {
   vm.$el = el;
+  // render函数不存在
   if (!vm.$options.render) {
     vm.$options.render = createEmptyVNode;
     {
@@ -4612,7 +4613,7 @@ function renderMixin (Vue) {
       }
     }
     // return empty vnode in case the render function errored out
-    // 虚拟DOM存在问题
+    // 虚拟DOM不存在问题
     if (!(vnode instanceof VNode)) {
       if ("development" !== 'production' && Array.isArray(vnode)) {
         warn(
@@ -6545,14 +6546,19 @@ function parseFilters (exp) {
     prev = c;
     c = exp.charCodeAt(i);
     if (inSingle) {
+      // 处理\'的情况
       if (c === 0x27 && prev !== 0x5C) { inSingle = false; }
     } else if (inDouble) {
+      // 处理\"
       if (c === 0x22 && prev !== 0x5C) { inDouble = false; }
     } else if (inTemplateString) {
+      // 处理\`
       if (c === 0x60 && prev !== 0x5C) { inTemplateString = false; }
     } else if (inRegex) {
+      // 处理\/
       if (c === 0x2f && prev !== 0x5C) { inRegex = false; }
     } else if (
+      // 过滤器, 0x7C是字符'|'
       c === 0x7C && // pipe
       exp.charCodeAt(i + 1) !== 0x7C &&
       exp.charCodeAt(i - 1) !== 0x7C &&
@@ -6667,6 +6673,7 @@ function addDirective (
   el.plain = false;
 }
 
+// @事件绑定处理
 function addHandler (
   el,
   name,
@@ -6682,6 +6689,7 @@ function addHandler (
     "development" !== 'production' && warn &&
     modifiers.prevent && modifiers.passive
   ) {
+    // passive和prevent不能同时存在
     warn(
       'passive and prevent can\'t be used together. ' +
       'Passive handler can\'t prevent default event.'
@@ -6689,15 +6697,18 @@ function addHandler (
   }
 
   // check capture modifier
+  // 捕获事件流
   if (modifiers.capture) {
     delete modifiers.capture;
     name = '!' + name; // mark the event as captured
   }
+  // 事件只调用一次
   if (modifiers.once) {
     delete modifiers.once;
     name = '~' + name; // mark the event as once
   }
   /* istanbul ignore if */
+  // 滚动事件的默认行为将会立即触发
   if (modifiers.passive) {
     delete modifiers.passive;
     name = '&' + name; // mark the event as passive
@@ -9376,14 +9387,18 @@ function parse (
           );
         }
       }
-      // 当前标签是否存在父元素
+      // 当前标签是否存在父元素并且当前元素非style、script
       if (currentParent && !element.forbidden) {
+        // v-if
         if (element.elseif || element.else) {
           processIfConditions(element, currentParent);
-        } else if (element.slotScope) { // scoped slot
+        } else if (element.slotScope) {
+          // 当前元素作为插槽
           currentParent.plain = false;
-          var name = element.slotTarget || '"default"';(currentParent.scopedSlots || (currentParent.scopedSlots = {}))[name] = element;
+          var name = element.slotTarget || '"default"';
+          (currentParent.scopedSlots || (currentParent.scopedSlots = {}))[name] = element;
         } else {
+          // 普通子元素
           currentParent.children.push(element);
           element.parent = currentParent;
         }
@@ -9516,6 +9531,7 @@ function processElement (element, options) {
 function processKey (el) {
   var exp = getBindingAttr(el, 'key');
   if (exp) {
+    // template标签上不能存在key属性
     if ("development" !== 'production' && el.tag === 'template') {
       warn$2("<template> cannot be keyed. Place the key on real elements instead.");
     }
@@ -9527,15 +9543,17 @@ function processRef (el) {
   var ref = getBindingAttr(el, 'ref');
   if (ref) {
     el.ref = ref;
+    // 判断父组件是否存在v-for指令
     el.refInFor = checkInFor(el);
   }
 }
-
+// 处理v-for指令属性值
 function processFor (el) {
   var exp;
   if ((exp = getAndRemoveAttr(el, 'v-for'))) {
     var res = parseFor(exp);
     if (res) {
+      // 将for循环结果浅拷贝到element对象上
       extend(el, res);
     } else {
       warn$2(
@@ -9546,8 +9564,8 @@ function processFor (el) {
 }
 
 
-
 function parseFor (exp) {
+  // 获取v-for内容
   var inMatch = exp.match(forAliasRE);
   if (!inMatch) { return }
   var res = {};
@@ -9563,6 +9581,14 @@ function parseFor (exp) {
   } else {
     res.alias = alias;
   }
+  /**
+   * res: {
+   *   for: 遍历的数据
+   *   alias: 每一项参数
+   *   iterator1: 支持(value, label)形式
+   *   iterator2: 支持(value, label, index)形式
+   * }
+   */
   return res
 }
 
@@ -9570,6 +9596,7 @@ function processIf (el) {
   var exp = getAndRemoveAttr(el, 'v-if');
   if (exp) {
     el.if = exp;
+    // v-if存在，会保存到ifConditions数组中
     addIfCondition(el, {
       exp: exp,
       block: el
@@ -9632,9 +9659,12 @@ function processOnce (el) {
 }
 
 function processSlot (el) {
+  // slot
   if (el.tag === 'slot') {
+    // 是否存在name属性
     el.slotName = getBindingAttr(el, 'name');
     if ("development" !== 'production' && el.key) {
+      // slot标签不能存在key属性
       warn$2(
         "`key` does not work on <slot> because slots are abstract outlets " +
         "and can possibly expand into multiple elements. " +
@@ -9643,6 +9673,7 @@ function processSlot (el) {
     }
   } else {
     var slotScope;
+    // 旧scope属性
     if (el.tag === 'template') {
       slotScope = getAndRemoveAttr(el, 'scope');
       /* istanbul ignore if */
@@ -9659,6 +9690,7 @@ function processSlot (el) {
     } else if ((slotScope = getAndRemoveAttr(el, 'slot-scope'))) {
       /* istanbul ignore if */
       if ("development" !== 'production' && el.attrsMap['v-for']) {
+        // slot-scope不能存在有v-for指令的标签上
         warn$2(
           "Ambiguous combined usage of slot-scope and v-for on <" + (el.tag) + "> " +
           "(v-for takes higher priority). Use a wrapper <template> for the " +
@@ -9668,6 +9700,7 @@ function processSlot (el) {
       }
       el.slotScope = slotScope;
     }
+    // 获取slot属性默认default
     var slotTarget = getBindingAttr(el, 'slot');
     if (slotTarget) {
       el.slotTarget = slotTarget === '""' ? '"default"' : slotTarget;
@@ -9682,6 +9715,7 @@ function processSlot (el) {
 
 function processComponent (el) {
   var binding;
+  // is属性，该属性值即对应的组件
   if ((binding = getBindingAttr(el, 'is'))) {
     el.component = binding;
   }
@@ -9696,16 +9730,19 @@ function processAttrs (el) {
   for (i = 0, l = list.length; i < l; i++) {
     name = rawName = list[i].name;
     value = list[i].value;
+    // 处理v-、@、:开头的属性，即指令、动态属性和事件绑定
     if (dirRE.test(name)) {
       // mark element as dynamic
       el.hasBindings = true;
-      // modifiers
+      // 获取修饰符，例如.stop等
       modifiers = parseModifiers(name);
       if (modifiers) {
         name = name.replace(modifierRE, '');
       }
+      // 处理动态属性，即v-bind:或:开头
       if (bindRE.test(name)) { // v-bind
         name = name.replace(bindRE, '');
+        // 获取动态属性中的过滤器， 例如v-bind:test="test | filterTest"
         value = parseFilters(value);
         isProp = false;
         if (modifiers) {
@@ -9717,6 +9754,7 @@ function processAttrs (el) {
           if (modifiers.camel) {
             name = camelize(name);
           }
+          // 处理.sync修饰符
           if (modifiers.sync) {
             addHandler(
               el,
@@ -9725,6 +9763,7 @@ function processAttrs (el) {
             );
           }
         }
+        // 
         if (isProp || (
           !el.component && platformMustUseProp(el.tag, el.attrsMap.type, name)
         )) {
@@ -9734,6 +9773,7 @@ function processAttrs (el) {
         }
       } else if (onRE.test(name)) { // v-on
         name = name.replace(onRE, '');
+        // 事件绑定处理，将对应事件保存到events中
         addHandler(el, name, value, modifiers, false, warn$2);
       } else { // normal directives
         name = name.replace(dirRE, '');
@@ -9743,16 +9783,20 @@ function processAttrs (el) {
         if (arg) {
           name = name.slice(0, -(arg.length + 1));
         }
+        // 指令的处理，将指令保存在directives中
         addDirective(el, name, rawName, value, arg, modifiers);
+        // v-model
         if ("development" !== 'production' && name === 'model') {
           checkForAliasModel(el, value);
         }
       }
     } else {
       // literal attribute
+      // 普通属性
       {
         var res = parseText(value, delimiters);
         if (res) {
+          // <div id="{{ val }}"这种情况
           warn$2(
             name + "=\"" + value + "\": " +
             'Interpolation inside attributes has been removed. ' +
@@ -9842,6 +9886,8 @@ function checkForAliasModel (el, value) {
   var _el = el;
   while (_el) {
     if (_el.for && _el.alias === value) {
+      // v-model的绑定值 === v-for循环中的参数项
+      // 例如: <div v-for="item in items" v-model="item">
       warn$2(
         "<" + (el.tag) + " v-model=\"" + value + "\">: " +
         "You are binding v-model directly to a v-for iteration alias. " +

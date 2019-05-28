@@ -3315,8 +3315,6 @@ Watcher.prototype.evaluate = function evaluate () {
  * Depend on this watcher. Only for computed property watchers.
  */
 Watcher.prototype.depend = function depend () {
-  debugger
-  console.log(Dep.target);
   if (this.dep && Dep.target) {
     this.dep.depend();
   }
@@ -4230,6 +4228,7 @@ var componentVNodeHooks = {
 
 var hooksToMerge = Object.keys(componentVNodeHooks);
 
+// 创建组件
 function createComponent (
   Ctor,
   data,
@@ -4237,6 +4236,7 @@ function createComponent (
   children,
   tag
 ) {
+  // 
   if (isUndef(Ctor)) {
     return
   }
@@ -5636,6 +5636,7 @@ function createPatchFunction (backend) {
     var data = vnode.data;
     var children = vnode.children;
     var tag = vnode.tag;
+    // 标签
     if (isDef(tag)) {
       {
         if (data && data.pre) {
@@ -5650,7 +5651,7 @@ function createPatchFunction (backend) {
           );
         }
       }
-
+      // 生成DOM
       vnode.elm = vnode.ns
         ? nodeOps.createElementNS(vnode.ns, tag)
         : nodeOps.createElement(tag, vnode);
@@ -5658,10 +5659,12 @@ function createPatchFunction (backend) {
 
       /* istanbul ignore if */
       {
+        // 循环处理子节点
         createChildren(vnode, children, insertedVnodeQueue);
         if (isDef(data)) {
           invokeCreateHooks(vnode, insertedVnodeQueue);
         }
+        // 插入DOM到页面上
         insert(parentElm, vnode.elm, refElm);
       }
 
@@ -5669,9 +5672,11 @@ function createPatchFunction (backend) {
         creatingElmInVPre--;
       }
     } else if (isTrue(vnode.isComment)) {
+      // 注释DOM
       vnode.elm = nodeOps.createComment(vnode.text);
       insert(parentElm, vnode.elm, refElm);
     } else {
+      // 文本DOM
       vnode.elm = nodeOps.createTextNode(vnode.text);
       insert(parentElm, vnode.elm, refElm);
     }
@@ -5789,6 +5794,7 @@ function createPatchFunction (backend) {
   // set scope id attribute for scoped CSS.
   // this is implemented as a special case to avoid the overhead
   // of going through the normal attribute patching process.
+  // style scope处理
   function setScope (vnode) {
     var i;
     if (isDef(i = vnode.fnScopeId)) {
@@ -5831,7 +5837,7 @@ function createPatchFunction (backend) {
       }
     }
   }
-
+  // 移除虚拟DOM
   function removeVnodes (parentElm, vnodes, startIdx, endIdx) {
     for (; startIdx <= endIdx; ++startIdx) {
       var ch = vnodes[startIdx];
@@ -6183,6 +6189,7 @@ function createPatchFunction (backend) {
           // mounting to a real element
           // check if this is server-rendered content and if we can perform
           // a successful hydration.
+          // 服务端渲染
           if (oldVnode.nodeType === 1 && oldVnode.hasAttribute(SSR_ATTR)) {
             oldVnode.removeAttribute(SSR_ATTR);
             hydrating = true;
@@ -6211,6 +6218,7 @@ function createPatchFunction (backend) {
         var parentElm = nodeOps.parentNode(oldElm);
 
         // create new node
+        // 创建DOM节点
         createElm(
           vnode,
           insertedVnodeQueue,

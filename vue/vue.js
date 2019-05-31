@@ -2060,15 +2060,18 @@ function updateListeners (
     old = oldOn[name];
     event = normalizeEvent(name);
     /* istanbul ignore if */
+    // 事件处理函数不存在
     if (isUndef(cur)) {
       "development" !== 'production' && warn(
         "Invalid handler for event \"" + (event.name) + "\": got " + String(cur),
         vm
       );
     } else if (isUndef(old)) {
+      // 支持单个事件多个事件处理函数
       if (isUndef(cur.fns)) {
         cur = on[name] = createFnInvoker(cur);
       }
+      // 调用Vue.prototype.$on或Vue.prototype.$once，注册事件
       add(event.name, cur, event.once, event.capture, event.passive, event.params);
     } else if (cur !== old) {
       old.fns = cur;
@@ -2427,7 +2430,7 @@ function initEvents (vm) {
   vm._events = Object.create(null);
   vm._hasHookEvent = false;
   // init parent attached events
-  // 
+  // 当组件存在事件绑定时
   var listeners = vm.$options._parentListeners;
   if (listeners) {
     updateComponentListeners(vm, listeners);
@@ -2448,6 +2451,7 @@ function remove$1 (event, fn) {
   target.$off(event, fn);
 }
 
+// 更新组件的事件
 function updateComponentListeners (
   vm,
   listeners,
@@ -2824,6 +2828,7 @@ function mountComponent (
   return vm
 }
 
+// 更新子组件
 function updateChildComponent (
   vm,
   propsData,
@@ -2874,6 +2879,7 @@ function updateChildComponent (
   }
 
   // update listeners
+  // 更新listeners，需要注意的是_parentListeners属性
   listeners = listeners || emptyObject;
   var oldListeners = vm.$options._parentListeners;
   vm.$options._parentListeners = listeners;
@@ -4161,6 +4167,7 @@ function mergeProps (to, from) {
 /*  */
 
 // inline hooks to be invoked on component VNodes during patch
+// 虚拟节点的hook函数
 var componentVNodeHooks = {
   init: function init (vnode, hydrating) {
     if (
@@ -4169,9 +4176,11 @@ var componentVNodeHooks = {
       vnode.data.keepAlive
     ) {
       // kept-alive components, treat as a patch
+      // keep-alive时的处理
       var mountedNode = vnode; // work around flow
       componentVNodeHooks.prepatch(mountedNode, mountedNode);
     } else {
+      // 非keep-alive 生成 vue实例
       var child = vnode.componentInstance = createComponentInstanceForVnode(
         vnode,
         activeInstance
@@ -4183,6 +4192,7 @@ var componentVNodeHooks = {
   prepatch: function prepatch (oldVnode, vnode) {
     var options = vnode.componentOptions;
     var child = vnode.componentInstance = oldVnode.componentInstance;
+    // updateChildComponent被调用，也是唯一触发点
     updateChildComponent(
       child,
       options.propsData, // updated props
@@ -4333,6 +4343,7 @@ function createComponent (
   return vnode
 }
 
+// 定义一些options属性并调用Vue构造函数生成Vue实例
 function createComponentInstanceForVnode (
   vnode, // we know it's MountedComponentVNode but flow doesn't
   parent // activeInstance in lifecycle state
@@ -4343,11 +4354,14 @@ function createComponentInstanceForVnode (
     parent: parent
   };
   // check inline-template render functions
+  // inline-template的处理
   var inlineTemplate = vnode.data.inlineTemplate;
   if (isDef(inlineTemplate)) {
     options.render = inlineTemplate.render;
     options.staticRenderFns = inlineTemplate.staticRenderFns;
   }
+  // 调用构造函数，实际上这里是所有经过Vue.extend处理后组件实例的创建触发点
+  // 实际上还是调用Vue.prototype._init实例方法，不同之处在于_isComponent为true，options的处理不同
   return new vnode.componentOptions.Ctor(options)
 }
 
@@ -4471,7 +4485,8 @@ function _createElement (
         undefined, undefined, context
       );
     } else if (isDef(Ctor = resolveAsset(context.$options, 'components', tag))) {
-      // component
+      // 判断$options.components是否存在对应的组件
+      // 创建组件对应的虚拟DOM
       vnode = createComponent(Ctor, data, context, children, tag);
     } else {
       // unknown or unlisted namespaced elements
@@ -4654,6 +4669,7 @@ function initMixin (Vue) {
     // a flag to avoid this being observed
     vm._isVue = true;
     // merge options
+    // 通过Vue.extend处理的组件，_isComponent为true
     if (options && options._isComponent) {
       // optimize internal component instantiation
       // since dynamic options merging is pretty slow, and none of the
@@ -4715,6 +4731,7 @@ function initInternalComponent (vm, options) {
 
   var vnodeComponentOptions = parentVnode.componentOptions;
   opts.propsData = vnodeComponentOptions.propsData;
+  // 定义了_parentListeners，在initEvents时会依据此属性判断是否调用事件相关处理函数
   opts._parentListeners = vnodeComponentOptions.listeners;
   opts._renderChildren = vnodeComponentOptions.children;
   opts._componentTag = vnodeComponentOptions.tag;
@@ -4869,7 +4886,7 @@ function initExtend (Vue) {
     if ("development" !== 'production' && name) {
       validateComponentName(name);
     }
-
+    // Vue构造函数
     var Sub = function VueComponent (options) {
       this._init(options);
     };
@@ -4954,6 +4971,7 @@ function initAssetRegisters (Vue) {
         }
         if (type === 'component' && isPlainObject(definition)) {
           definition.name = definition.name || id;
+          // 调用vue.extend
           definition = this.options._base.extend(definition);
         }
         if (type === 'directive' && typeof definition === 'function') {
